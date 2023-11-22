@@ -25,4 +25,16 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "confirm_password"
         )
 
+    def validate(self, data):
+        if data.get("password") != data.get("confirm_password"):
+            raise ValidationError("Passwords don't match")
+        del data["confirm_password"]
+        return super().validate(data)
 
+    @staticmethod
+    def validate_password(value):
+        try:
+            validate_password(value)
+        except exceptions.ValidationError as exc:
+            raise ValidationError(str(exc))
+        return value
