@@ -21,7 +21,7 @@ class UserCreateSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
             "password",
-            "confirm_password"
+            "confirm_password",
         )
 
     def validate(self, data):
@@ -56,9 +56,4 @@ class UserDetailSerializer(serializers.ModelSerializer):
 class UserListSerializer(serializers.ModelSerializer):
     class Meta:
         model = get_user_model()
-        fields = (
-            "id",
-            "email",
-            "first_name",
-            "last_name"
-        )
+        fields = ("id", "email", "first_name", "last_name")

@@ -6,6 +6,5 @@ app_name = "user"
 
 urlpatterns = [
     path("users/", UserRegisterView.as_view(), name="register"),
-    path("me/", ManageMeView.as_view(), name="me")
+    path("me/", ManageMeView.as_view(), name="me"),
 ]
-
