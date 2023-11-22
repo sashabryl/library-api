@@ -51,3 +51,14 @@ class UserDetailSerializer(serializers.ModelSerializer):
             "first_name",
             "last_name",
         )
+
+
+class UserListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = get_user_model()
+        fields = (
+            "id",
+            "email",
+            "first_name",
+            "last_name"
+        )
