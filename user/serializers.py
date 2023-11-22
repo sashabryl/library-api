@@ -5,7 +5,6 @@ from rest_framework.exceptions import ValidationError
 from django.contrib.auth.password_validation import validate_password
 
 
-
 class UserCreateSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         max_length=255, write_only=True, style={"input_type": "password"}
@@ -38,3 +37,6 @@ class UserCreateSerializer(serializers.ModelSerializer):
         except exceptions.ValidationError as exc:
             raise ValidationError(str(exc))
         return value
+
+    def create(self, validated_data):
+        return get_user_model().objects.create(**validated_data)
