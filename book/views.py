@@ -1,14 +1,17 @@
+import datetime
+
 from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
 
 from book.models import Book, Borrowing
 from book.permissions import IsAdminOrReadOnly
 from book.serializers import (
     BookListSerializer,
-    BookSerializer, BorrowSerializer, BorrowListSerializer, BorrowDetailSerializer
+    BookSerializer, BorrowSerializer, BorrowListSerializer, BorrowDetailSerializer,
 )
 
 
@@ -50,7 +53,7 @@ class BorrowViewSet(
             queryset = queryset.filter(user__id=user_id)
 
         if is_active is not None:
-            if is_active is True:
+            if is_active == "True":
                 queryset = queryset.filter(
                     actual_return_date__isnull=False
                 ).exclude(actual_return_date="")
@@ -67,4 +70,14 @@ class BorrowViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-
+    @action(methods=["GET"], detail=True, url_path="return")
+    def return_book(self, request, pk=None):
+        borrowing = self.get_object()
+        borrowing.actual_return_date = datetime.date.today()
+        borrowing.save()
+        book = borrowing.book
+        book.inventory += 1
+        book.save()
+        return Response(
+            f"{book.title} has been returned on {datetime.date.today()} successfully"
+        )
