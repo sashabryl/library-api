@@ -1,7 +1,8 @@
 from django.db.models import Q
 from rest_framework import viewsets
+from rest_framework.decorators import action
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from book.models import Book, Borrowing
 from book.permissions import IsAdminOrReadOnly
@@ -28,7 +29,7 @@ class BorrowViewSet(
     CreateModelMixin,
     RetrieveModelMixin
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminUser]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -65,6 +66,5 @@ class BorrowViewSet(
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
-
 
 

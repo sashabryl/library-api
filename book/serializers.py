@@ -23,6 +23,12 @@ class BorrowSerializer(serializers.ModelSerializer):
         model = Borrowing
         fields = ("id", "expected_return_date", "book")
 
+    def create(self, validated_data):
+        book = validated_data.get("book")
+        book.inventory -= 1
+        book.save()
+        return super().create(validated_data)
+
 
 class BorrowDetailSerializer(serializers.ModelSerializer):
     class Meta:
