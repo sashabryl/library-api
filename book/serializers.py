@@ -5,15 +5,11 @@ from book.models import Book
 
 
 class BookSerializer(serializers.ModelSerializer):
+    inventory = serializers.IntegerField(min_value=0)
+
     class Meta:
         model = Book
         fields = ("id", "title", "author", "cover", "inventory", "daily_fee")
-
-    @staticmethod
-    def validate_inventory(value):
-        if value < 0:
-            raise ValidationError("Inventory cannot be negative")
-        return value
 
 
 class BookListSerializer(serializers.ModelSerializer):
