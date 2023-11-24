@@ -33,6 +33,7 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
             "book",
             "borrow_date",
             "expected_return_date",
+            "is_active",
             "actual_return_date"
         )
 
