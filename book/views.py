@@ -55,11 +55,11 @@ class BorrowViewSet(
         if is_active is not None:
             if is_active == "True":
                 queryset = queryset.filter(
-                    actual_return_date__isnull=False
-                ).exclude(actual_return_date="")
+                    actual_return_date__isnull=True
+                )
             else:
                 queryset = queryset.filter(
-                    Q(actual_return_date__isnull=True) | Q(actual_return_date="")
+                    Q(actual_return_date__isnull=False)
                 )
 
         if self.action == "list":
