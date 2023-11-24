@@ -1,3 +1,5 @@
+import datetime
+
 from django.conf import settings
 from django.db import models
 
@@ -39,6 +41,10 @@ class Borrowing(models.Model):
 
     class Meta:
         ordering = ["-expected_return_date"]
+
+    @property
+    def is_active(self) -> bool:
+        return self.actual_return_date is not None
 
     def __str__(self) -> str:
         return f"{self.borrow_date} - {self.user} {self.book} - {self.expected_return_date}"
