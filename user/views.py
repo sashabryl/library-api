@@ -15,7 +15,9 @@ class UserRegisterView(generics.CreateAPIView):
 class ManageMeView(generics.RetrieveUpdateAPIView):
     serializer_class = UserDetailSerializer
     queryset = get_user_model().objects.all()
-    permission_classes = [IsAuthenticated,]
+    permission_classes = [
+        IsAuthenticated,
+    ]
 
     def get_object(self):
         return self.request.user
