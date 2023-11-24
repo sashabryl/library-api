@@ -42,7 +42,6 @@ class BorrowSerializer(serializers.ModelSerializer):
             raise ValidationError("Please choose a date in the future")
         return value
 
-
     def create(self, validated_data):
         book = validated_data.get("book")
         book.inventory -= 1
@@ -70,3 +69,7 @@ class BorrowListSerializer(serializers.ModelSerializer):
         fields = ("id", "borrow_date", "user", "is_active")
 
 
+class BorrowReturnSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrowing
+        fields = ("id", "actual_return_date")
