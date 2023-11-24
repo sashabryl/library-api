@@ -14,7 +14,11 @@ class Book(models.Model):
     daily_fee = models.DecimalField(max_digits=6, decimal_places=2)
 
     class Meta:
-        ordering = ["title", "author"]
+        ordering = ["-daily_fee"]
+
+    @property
+    def is_available(self) -> bool:
+        return self.inventory != 0
 
     def __str__(self) -> str:
         return f"{self.title} by {self.author}, {self.cover}"
