@@ -1,6 +1,7 @@
 from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.mixins import ListModelMixin, CreateModelMixin, RetrieveModelMixin
+from rest_framework.permissions import IsAuthenticated
 
 from book.models import Book, Borrowing
 from book.permissions import IsAdminOrReadOnly
@@ -27,6 +28,8 @@ class BorrowViewSet(
     CreateModelMixin,
     RetrieveModelMixin
 ):
+    permission_classes = [IsAuthenticated]
+
     def get_serializer_class(self):
         if self.action == "create":
             return BorrowSerializer
@@ -58,6 +61,8 @@ class BorrowViewSet(
         if self.action == "list":
             queryset = queryset.select_related("user")
 
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
 
 
 
