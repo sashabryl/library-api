@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from book.models import Book
+from book.models import Book, Borrowing
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -16,3 +16,30 @@ class BookListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = ("id", "title", "author", "daily_fee", "is_available")
+
+
+class BorrowSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrowing
+        fields = ("id", "expected_return_date", "book")
+
+
+class BorrowDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrowing
+        fields = (
+            "id",
+            "user",
+            "book",
+            "borrow_date",
+            "expected_return_date",
+            "actual_return_date"
+        )
+
+
+class BorrowListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrowing
+        fields = ("id", "borrow_date", "user", "is_active")
+
+
