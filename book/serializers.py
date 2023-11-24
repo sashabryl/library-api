@@ -37,3 +37,9 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
         )
 
 
+class BorrowListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Borrowing
+        fields = ("id", "borrow_date", "user", "is_active")
+
+
