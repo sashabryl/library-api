@@ -39,7 +39,7 @@ class BorrowViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
 ):
-    permission_classes = [IsAdminUser]
+    permission_classes = [IsAuthenticated]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -52,6 +52,9 @@ class BorrowViewSet(
 
     def get_queryset(self):
         queryset = Borrowing.objects.all()
+
+        if self.action == "list" and not self.request.user.is_staff:
+            return queryset.filter(user=self.request.user)
 
         user_id = self.request.query_params.get("user_id")
         is_active = self.request.query_params.get("is_active")
