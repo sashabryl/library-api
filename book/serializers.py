@@ -53,7 +53,7 @@ class BorrowSerializer(serializers.ModelSerializer):
 
 class BorrowDetailSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
-    book = serializers.StringRelatedField()
+    book = BookListSerializer(many=False, read_only=True)
 
     class Meta:
         model = Borrowing
