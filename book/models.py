@@ -11,7 +11,7 @@ class Book(models.Model):
 
     author = models.CharField(max_length=255)
     title = models.CharField(max_length=255)
-    cover = models.CharField(max_length=4, choices=CoverChoices.choices)
+    cover = models.CharField(max_length=10, choices=CoverChoices.choices)
     inventory = models.PositiveIntegerField()
     daily_fee = models.DecimalField(max_digits=6, decimal_places=2)
 
@@ -44,7 +44,7 @@ class Borrowing(models.Model):
 
     @property
     def is_active(self) -> bool:
-        return self.actual_return_date is not None
+        return not bool(self.actual_return_date)
 
     def __str__(self) -> str:
         return f"{self.borrow_date} - {self.user} {self.book} - {self.expected_return_date}"
