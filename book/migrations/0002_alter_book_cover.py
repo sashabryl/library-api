@@ -13,7 +13,8 @@ class Migration(migrations.Migration):
             model_name="book",
             name="cover",
             field=models.CharField(
-                choices=[("HARD", "Hardcover"), ("SOFT", "Softcover")], max_length=10
+                choices=[("HARD", "Hardcover"), ("SOFT", "Softcover")],
+                max_length=10,
             ),
         ),
     ]

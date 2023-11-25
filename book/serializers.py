@@ -28,7 +28,9 @@ class BorrowSerializer(serializers.ModelSerializer):
     @staticmethod
     def validate_book(value):
         if value.inventory == 0:
-            raise ValidationError(f"Sorry {value} is not available at the moment")
+            raise ValidationError(
+                f"Sorry {value} is not available at the moment"
+            )
         return value
 
     @staticmethod
@@ -50,6 +52,9 @@ class BorrowSerializer(serializers.ModelSerializer):
 
 
 class BorrowDetailSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+    book = serializers.StringRelatedField()
+
     class Meta:
         model = Borrowing
         fields = (
@@ -59,12 +64,19 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "is_active",
-            "actual_return_date"
+            "actual_return_date",
         )
 
 
 class BorrowListSerializer(serializers.ModelSerializer):
+    user = serializers.StringRelatedField()
+
     class Meta:
         model = Borrowing
-        fields = ("id", "borrow_date", "expected_return_date", "user", "is_active")
-
+        fields = (
+            "id",
+            "borrow_date",
+            "expected_return_date",
+            "user",
+            "is_active",
+        )

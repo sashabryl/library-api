@@ -30,12 +30,18 @@ class Migration(migrations.Migration):
                 (
                     "cover",
                     models.CharField(
-                        choices=[("HARD", "Hardcover"), ("SOFT", "Softcover")],
+                        choices=[
+                            ("HARD", "Hardcover"),
+                            ("SOFT", "Softcover"),
+                        ],
                         max_length=4,
                     ),
                 ),
                 ("inventory", models.PositiveIntegerField()),
-                ("daily_fee", models.DecimalField(decimal_places=2, max_digits=6)),
+                (
+                    "daily_fee",
+                    models.DecimalField(decimal_places=2, max_digits=6),
+                ),
             ],
             options={
                 "ordering": ["-daily_fee"],
@@ -55,7 +61,10 @@ class Migration(migrations.Migration):
                 ),
                 ("borrow_date", models.DateField(auto_now_add=True)),
                 ("expected_return_date", models.DateField()),
-                ("actual_return_date", models.DateField(blank=True, null=True)),
+                (
+                    "actual_return_date",
+                    models.DateField(blank=True, null=True),
+                ),
                 (
                     "book",
                     models.ForeignKey(

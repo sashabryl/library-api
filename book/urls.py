@@ -9,6 +9,4 @@ router = DefaultRouter()
 router.register("books", BookViewSet)
 router.register("borrowings", BorrowViewSet, basename="borrow")
 
-urlpatterns = [
-    path("", include(router.urls))
-]
+urlpatterns = [path("", include(router.urls))]
