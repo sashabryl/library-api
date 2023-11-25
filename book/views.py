@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from book.models import Book, Borrowing
-from book.permissions import IsAdminOrReadOnly
+from book.permissions import IsAdminOrReadOnly, IsAdminOrAuthenticatedOwner
 from book.serializers import (
     BookListSerializer,
     BookSerializer,
@@ -39,7 +39,7 @@ class BorrowViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
 ):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAdminOrAuthenticatedOwner]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -54,7 +54,7 @@ class BorrowViewSet(
         queryset = Borrowing.objects.all()
 
         if self.action == "list" and not self.request.user.is_staff:
-            return queryset.filter(user=self.request.user)
+            return queryset.filter(user=self.request.user).select_related("user", "book")
 
         user_id = self.request.query_params.get("user_id")
         is_active = self.request.query_params.get("is_active")
@@ -78,7 +78,7 @@ class BorrowViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(methods=["GET"], detail=True, url_path="return")
+    @action(methods=["GET"], detail=True, url_path="return", permission_classes=[IsAdminUser])
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
         if borrowing.actual_return_date:

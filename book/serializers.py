@@ -70,6 +70,7 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
 
 class BorrowListSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
+    book = serializers.StringRelatedField()
 
     class Meta:
         model = Borrowing
@@ -78,5 +79,6 @@ class BorrowListSerializer(serializers.ModelSerializer):
             "borrow_date",
             "expected_return_date",
             "user",
+            "book",
             "is_active",
         )
