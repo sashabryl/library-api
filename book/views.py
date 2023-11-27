@@ -8,7 +8,7 @@ from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
 )
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from book.models import Book, Borrowing
@@ -20,7 +20,6 @@ from book.serializers import (
     BorrowListSerializer,
     BorrowDetailSerializer,
 )
-from book.telegram_bot import send_creation_notification
 
 
 class BookViewSet(viewsets.ModelViewSet):
@@ -55,7 +54,9 @@ class BorrowViewSet(
         queryset = Borrowing.objects.all()
 
         if self.action == "list" and not self.request.user.is_staff:
-            return queryset.filter(user=self.request.user).select_related("user", "book")
+            return queryset.filter(user=self.request.user).select_related(
+                "user", "book"
+            )
 
         user_id = self.request.query_params.get("user_id")
         is_active = self.request.query_params.get("is_active")
@@ -79,7 +80,12 @@ class BorrowViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
-    @action(methods=["GET"], detail=True, url_path="return", permission_classes=[IsAdminUser])
+    @action(
+        methods=["GET"],
+        detail=True,
+        url_path="return",
+        permission_classes=[IsAdminUser],
+    )
     def return_book(self, request, pk=None):
         borrowing = self.get_object()
         if borrowing.actual_return_date:

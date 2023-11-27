@@ -9,6 +9,6 @@ class IsAdminOrReadOnly(BasePermission):
 class IsAdminOrAuthenticatedOwner(BasePermission):
     def has_object_permission(self, request, view, obj):
         return bool(
-            request.user.is_staff or
-            (request.user.is_authenticated and obj.user == request.user)
+            request.user.is_staff
+            or (request.user.is_authenticated and obj.user == request.user)
         )
