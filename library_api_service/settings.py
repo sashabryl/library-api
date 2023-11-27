@@ -24,6 +24,10 @@ SECRET_KEY = (
     "django-insecure-xr)#qs(dgbp$t_(^11xmzu0gr1gk$-x%ajienat=9k3evg*%-k"
 )
 
+TELEGRAM_BOT_TOKEN = "6515655355:AAHcCsAyU0zYAiodR5OeFDaHG2NkqbePhWQ"
+
+TELEGRAM_CHAT_ID = "-1002095527677"
+
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
