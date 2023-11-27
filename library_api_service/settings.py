@@ -169,14 +169,16 @@ SIMPLE_JWT = {
 
 CELERY_BROKER_URL = "redis://redis:6379"
 CELERY_ACCEPT_CONTENT = ["application/json"]
-CELERY_BEAT_SCHEDULER = 'django_celery_beat.schedulers:DatabaseScheduler'
+CELERY_BEAT_SCHEDULER = "django_celery_beat.schedulers:DatabaseScheduler"
 CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_TIMEZONE = "Europe/Kiev"
+CELERY_BROKER_CONNECTION_RETRY_ON_STARTUP = True
+
 CELERY_BEAT_SCHEDULE = {
     "daily_overdue_check": {
         "task": "book.tasks.check_for_overdue_borrowings",
-        "schedule": 7,
+        "schedule": 86400,
     },
 }
