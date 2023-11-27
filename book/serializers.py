@@ -5,7 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from book.models import Book, Borrowing
-from book.telegram_bot import send_creation_notification
+from book.telegram_bot import send_notification
 
 
 class BookSerializer(serializers.ModelSerializer):
@@ -57,7 +57,7 @@ class BorrowSerializer(serializers.ModelSerializer):
             f"'{validated_data.get('book')}' back by "
             f"{validated_data.get('expected_return_date')}!"
         )
-        asyncio.run(send_creation_notification(text=notification))
+        asyncio.run(send_notification(text=notification))
 
         return super().create(validated_data)
 

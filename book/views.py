@@ -8,7 +8,7 @@ from rest_framework.mixins import (
     CreateModelMixin,
     RetrieveModelMixin,
 )
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from book.models import Book, Borrowing
@@ -20,7 +20,6 @@ from book.serializers import (
     BorrowListSerializer,
     BorrowDetailSerializer,
 )
-from book.telegram_bot import send_creation_notification
 
 
 class BookViewSet(viewsets.ModelViewSet):
