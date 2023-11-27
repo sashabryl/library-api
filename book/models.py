@@ -48,3 +48,23 @@ class Borrowing(models.Model):
 
     def __str__(self) -> str:
         return f"{self.borrow_date} - {self.user} {self.book} - {self.expected_return_date}"
+
+
+class Payment(models.Model):
+    class StatusChoices(models.TextChoices):
+        PAID = "PAID"
+        PENDING = "PENDING"
+
+    class TypeChoices(models.TextChoices):
+        PAYMENT = "PAYMENT"
+        FINE = "FINE"
+
+    status = models.CharField(max_length=7, choices=StatusChoices.choices)
+    type = models.CharField(max_length=7, choices=TypeChoices.choices)
+    borrowing = models.OneToOneField(
+        "Borrowing", on_delete=models.CASCADE
+    )
+    session_url = models.URLField()
+    session_id = models.CharField(max_length=16)
+    money_to_pay = models.DecimalField(max_digits=6, decimal_places=2)
+
