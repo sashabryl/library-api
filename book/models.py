@@ -23,7 +23,7 @@ class Book(models.Model):
         return self.inventory != 0
 
     def __str__(self) -> str:
-        return f"{self.title} by {self.author}, {self.cover}"
+        return f"{self.title.title()} by {self.author.title()}, cover: {self.cover}"
 
 
 class Borrowing(models.Model):

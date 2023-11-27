@@ -20,6 +20,7 @@ from book.serializers import (
     BorrowListSerializer,
     BorrowDetailSerializer,
 )
+from book.telegram_bot import send_creation_notification
 
 
 class BookViewSet(viewsets.ModelViewSet):
