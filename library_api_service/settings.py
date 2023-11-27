@@ -174,3 +174,9 @@ CELERY_RESULT_SERIALIZER = "json"
 CELERY_TASK_SERIALIZER = "json"
 CELERY_RESULT_BACKEND = "django-db"
 CELERY_TIMEZONE = "Europe/Kiev"
+CELERY_BEAT_SCHEDULE = {
+    "daily_overdue_check": {
+        "task": "book.tasks.check_for_overdue_borrowings",
+        "schedule": 7,
+    },
+}
