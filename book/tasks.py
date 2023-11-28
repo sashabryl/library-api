@@ -11,6 +11,7 @@ from book.telegram_bot import send_notification
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
+
 @shared_task
 def check_for_overdue_borrowings():
     active_borrowings = Borrowing.objects.filter(
@@ -59,8 +60,9 @@ def check_for_overdue_borrowings():
 def get_expired_sessions():
     sessions = stripe.checkout.Session.list().data
     return [
-        session.id for session in sessions if
-        session.status != "open" and session.payment_status == "unpaid"
+        session.id
+        for session in sessions
+        if session.status != "open" and session.payment_status == "unpaid"
     ]
 
 
