@@ -94,6 +94,14 @@ class BorrowViewSet(
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        if Payment.objects.filter(
+                borrowing__in=request.user.borrowings.all(), status="PENDING"
+        ).exists():
+            return Response(
+                "You will be able to borrow new books once "
+                "you have completed all your payments",
+                status=403
+            )
         response = super().create(request, *args, **kwargs)
         borrowing = Borrowing.objects.get(id=response.data.get("id"))
         return HttpResponseRedirect(
