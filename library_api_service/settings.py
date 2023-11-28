@@ -188,5 +188,5 @@ CELERY_BEAT_SCHEDULE = {
     "expired_payments_check": {
         "task": "book.tasks.mark_expired_payments",
         "schedule": 60,
-    }
+    },
 }

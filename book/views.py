@@ -95,13 +95,14 @@ class BorrowViewSet(
 
     def create(self, request, *args, **kwargs):
         if Payment.objects.filter(
-                borrowing__in=request.user.borrowings.all(), status="PENDING"
+            borrowing__in=request.user.borrowings.all(), status="PENDING"
         ).exists():
             return Response(
                 "You will be able to borrow new books once "
                 "you have completed all your payments",
-                status=403
+                status=403,
             )
+
         response = super().create(request, *args, **kwargs)
         borrowing = Borrowing.objects.get(id=response.data.get("id"))
         return HttpResponseRedirect(
@@ -187,7 +188,7 @@ class PaymentViewSet(
         if payment.status != "EXPIRED":
             return Response(
                 "This payment is totally fine, no need for a renewal",
-                status=403
+                status=403,
             )
 
         recover_payment(request, payment)

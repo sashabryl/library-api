@@ -84,7 +84,7 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
             "expected_return_date",
             "is_active",
             "actual_return_date",
-            "payments"
+            "payments",
         )
 
 
