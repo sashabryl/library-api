@@ -4,7 +4,7 @@ import datetime
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from book.models import Book, Borrowing
+from book.models import Book, Borrowing, Payment
 from book.telegram_bot import send_notification
 
 
@@ -92,4 +92,28 @@ class BorrowListSerializer(serializers.ModelSerializer):
             "user",
             "book",
             "is_active",
+        )
+
+
+class PaymentListSerializer(serializers.ModelSerializer):
+    borrowing = serializers.StringRelatedField()
+
+    class Meta:
+        model = Payment
+        fields = ("id", "status", "type", "borrowing", "money_to_pay")
+
+
+class PaymentDetailSerializer(serializers.ModelSerializer):
+    borrowing = BorrowDetailSerializer(read_only=True)
+
+    class Meta:
+        model = Payment
+        fields = (
+            "id",
+            "status",
+            "type",
+            "borrowing",
+            "session_url",
+            "session_id",
+            "money_to_pay",
         )
