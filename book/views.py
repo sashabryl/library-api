@@ -1,7 +1,7 @@
 import datetime
 
 from django.db.models import Q
-from rest_framework import viewsets
+from rest_framework import viewsets, generics
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     ListModelMixin,
@@ -11,14 +11,14 @@ from rest_framework.mixins import (
 from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
-from book.models import Book, Borrowing
+from book.models import Book, Borrowing, Payment
 from book.permissions import IsAdminOrReadOnly, IsAdminOrAuthenticatedOwner
 from book.serializers import (
     BookListSerializer,
     BookSerializer,
     BorrowSerializer,
     BorrowListSerializer,
-    BorrowDetailSerializer,
+    BorrowDetailSerializer, PaymentListSerializer, PaymentDetailSerializer,
 )
 
 
@@ -102,3 +102,26 @@ class BorrowViewSet(
             f"{book.title} has been returned on "
             f"{datetime.date.today()} successfully."
         )
+
+
+class PaymentViewSet(
+    viewsets.GenericViewSet, ListModelMixin, RetrieveModelMixin
+):
+    permission_classes = [IsAdminOrAuthenticatedOwner]
+
+    def get_queryset(self):
+        queryset = Payment.objects.select_related(
+            "borrowing__user",
+            "borrowing__book"
+        )
+
+        if not self.request.user.is_staff:
+            queryset = queryset.filter(borrowing__user=self.request.user)
+
+        return queryset
+
+    def get_serializer_class(self):
+        if self.request.action == "list":
+            return PaymentListSerializer
+
+        return PaymentDetailSerializer
