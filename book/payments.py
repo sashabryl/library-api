@@ -12,14 +12,16 @@ def create_payment(request, borrowing):
     borrowing_days = (
         borrowing.expected_return_date - borrowing.borrow_date
     ).days
-    price = int(borrowing_days * borrowing.book.daily_fee * 100)
+    money_to_pay = borrowing_days * borrowing.book.daily_fee
 
     payment = Payment.objects.create(
         borrowing=borrowing,
         status="PENDING",
         type="PAYMENT",
-        money_to_pay=price,
+        money_to_pay=money_to_pay,
     )
+
+    price = int(money_to_pay * 100)
     success_url = request.build_absolute_uri(
         reverse_lazy(
             "book:payment-success",
@@ -47,5 +49,10 @@ def create_payment(request, borrowing):
         success_url=success_url,
         cancel_url=cancel_url,
     )
+
+    payment.session_id = session.id
+    payment.save()
+    payment.session_url = session.url
+    payment.save()
 
     return HttpResponseRedirect(redirect_to=session.url)
