@@ -47,7 +47,10 @@ class Borrowing(models.Model):
         return not bool(self.actual_return_date)
 
     def __str__(self) -> str:
-        return f"{self.borrow_date} - {self.user} {self.book} - {self.expected_return_date}"
+        return (
+            f"from: {self.borrow_date} - {self.user} '{self.book}' "
+            f"- exp: {self.expected_return_date}"
+        )
 
 
 class Payment(models.Model):
