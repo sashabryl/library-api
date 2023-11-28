@@ -58,17 +58,16 @@ def check_for_overdue_borrowings():
 
 def get_expired_sessions():
     sessions = stripe.checkout.Session.list().data
-    current_time = int(datetime.datetime.now().timestamp())
     return [
         session.id for session in sessions if
-        session.expires_at < current_time and
-        session.payment_status == "unpaid"
+        session.status != "open" and session.payment_status == "unpaid"
     ]
 
 
 @shared_task
 def mark_expired_payments():
     expired_sessions = get_expired_sessions()
+    print(f"{len(expired_sessions)} expired sessions")
     for payment in Payment.objects.all():
         if payment.session_id in expired_sessions:
             payment.status = "EXPIRED"

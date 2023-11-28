@@ -185,4 +185,8 @@ CELERY_BEAT_SCHEDULE = {
         "task": "book.tasks.check_for_overdue_borrowings",
         "schedule": 86400,
     },
+    "expired_payments_check": {
+        "task": "book.tasks.mark_expired_payments",
+        "schedule": 60,
+    }
 }

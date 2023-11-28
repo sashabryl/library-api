@@ -172,3 +172,17 @@ class PaymentViewSet(
             f"Link to the session can be found on the payment detail page.",
             status=200,
         )
+
+    @action(methods=["GET"], detail=True, url_path="renew-session")
+    def renew_session(self, request, pk=None):
+        payment = self.get_object()
+        if payment.status is not "EXPIRED":
+            return Response(
+                "This payment is totally fine, no need for a renewal",
+                status=403
+            )
+
+
+
+
+

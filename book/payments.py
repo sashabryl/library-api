@@ -70,3 +70,36 @@ def create_payment(request, borrowing, type):
     payment.save()
 
     return session.url
+
+
+def recover_payment(request, payment):
+    price = int(payment.money_to_pay * 100)
+    success_url = request.build_absolute_uri(
+        reverse_lazy("book:payment-success", kwargs={"pk": payment.id})
+    )
+    cancel_url = request.build_absolute_uri(
+        reverse_lazy("book:payment-cancel", kwargs={"pk": payment.id})
+    )
+    session = stripe.checkout.Session.create(
+        line_items=[
+            {
+                "price_data": {
+                    "currency": "usd",
+                    "product_data": {
+                        "name": payment.borrowing.book,
+                    },
+                    "unit_amount": price,
+                },
+                "quantity": 1,
+            }
+        ],
+        mode="payment",
+        success_url=success_url,
+        cancel_url=cancel_url,
+        customer_creation="always",
+    )
+
+    payment.session_id = session.id
+    payment.save()
+    payment.session_url = session.url
+    payment.save()
