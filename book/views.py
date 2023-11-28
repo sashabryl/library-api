@@ -3,6 +3,7 @@ import os
 
 import stripe
 from django.db.models import Q
+from django.http import HttpResponseRedirect
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -91,7 +92,11 @@ class BorrowViewSet(
     def create(self, request, *args, **kwargs):
         response = super().create(request, *args, **kwargs)
         borrowing = Borrowing.objects.get(id=response.data.get("id"))
-        return create_payment(request=request, borrowing=borrowing)
+        return HttpResponseRedirect(
+            redirect_to=create_payment(
+                request=request, borrowing=borrowing, type="PAYMENT"
+            )
+        )
 
     @action(
         methods=["GET"],
@@ -105,16 +110,23 @@ class BorrowViewSet(
             return Response(
                 f"This book has been already "
                 f"returned on {borrowing.actual_return_date}!",
-                status=400
+                status=400,
             )
         borrowing.actual_return_date = datetime.date.today()
         borrowing.save()
         book = borrowing.book
         book.inventory += 1
         book.save()
+
+        if borrowing.actual_return_date <= borrowing.expected_return_date:
+            return Response(
+                f"{book.title} has been returned on "
+                f"{datetime.date.today()} successfully."
+            )
+
         return Response(
-            f"{book.title} has been returned on "
-            f"{datetime.date.today()} successfully."
+            f"Well, well, silly {borrowing.user}, "
+            f"here is their fine: {create_payment(borrowing=borrowing, request=request, type='FINE')}"
         )
 
 
@@ -142,11 +154,11 @@ class PaymentViewSet(
     @action(methods=["GET"], detail=True, url_path="success")
     def success(self, request, pk=None):
         payment = self.get_object()
-        session = stripe.checkout.Session.retrieve(id=payment.session_id)
-        customer = stripe.Customer.retrieve(id=session.customer)
+        session = stripe.checkout.Session.retrieve(payment.session_id)
+        customer = stripe.Customer.retrieve(session.customer)
         payment.status = "PAID"
         payment.save()
-        return Response(f"Thank you for your order, {customer.name}!", status=201)
+        return Response(f"Thank you, {customer.name}!", status=200)
 
     @action(methods=["GET"], detail=True, url_path="cancel")
     def cancel(self, request, pk=None):
@@ -154,5 +166,5 @@ class PaymentViewSet(
             f"Please don't forget to complete this payment "
             f"later (the session is active for 24 hours). "
             f"Link to the session can be found on the payment detail page.",
-            status=200
+            status=200,
         )
