@@ -15,7 +15,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from book.models import Book, Borrowing, Payment
-from book.payments import create_payment
+from book.payments import create_payment, recover_payment
 from book.permissions import (
     IsAdminOrReadOnly,
     BorrowingIsAdminOrAuthenticatedOwner,
@@ -176,13 +176,11 @@ class PaymentViewSet(
     @action(methods=["GET"], detail=True, url_path="renew-session")
     def renew_session(self, request, pk=None):
         payment = self.get_object()
-        if payment.status is not "EXPIRED":
+        if payment.status != "EXPIRED":
             return Response(
                 "This payment is totally fine, no need for a renewal",
                 status=403
             )
 
-
-
-
-
+        recover_payment(request, payment)
+        return Response(f"Renewed successfully. Link: {payment.session_url}")

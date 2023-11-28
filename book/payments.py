@@ -103,3 +103,7 @@ def recover_payment(request, payment):
     payment.save()
     payment.session_url = session.url
     payment.save()
+    payment.status = "PENDING"
+    payment.save()
+
+    return payment
