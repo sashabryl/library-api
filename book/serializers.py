@@ -63,9 +63,16 @@ class BorrowSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class PaymentNestedListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ("id", "status", "type", "money_to_pay")
+
+
 class BorrowDetailSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
     book = BookListSerializer(many=False, read_only=True)
+    payments = PaymentNestedListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Borrowing
@@ -77,6 +84,7 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
             "expected_return_date",
             "is_active",
             "actual_return_date",
+            "payments"
         )
 
 
@@ -90,6 +98,7 @@ class BorrowListSerializer(serializers.ModelSerializer):
             "id",
             "borrow_date",
             "expected_return_date",
+            "actual_return_date",
             "user",
             "book",
             "is_active",
@@ -105,7 +114,7 @@ class PaymentListSerializer(serializers.ModelSerializer):
 
 
 class PaymentDetailSerializer(serializers.ModelSerializer):
-    borrowing = BorrowDetailSerializer(read_only=True)
+    borrowing = BorrowListSerializer(read_only=True)
 
     class Meta:
         model = Payment
