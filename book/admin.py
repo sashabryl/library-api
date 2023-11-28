@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from book.models import Book, Borrowing
+from book.models import Book, Borrowing, Payment
 
 
 @admin.register(Book)
@@ -26,4 +26,18 @@ class BorrowingAdmin(admin.ModelAdmin):
         "actual_return_date"
     )
     search_fields = ("user",)
+
+
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = (
+        "status",
+        "type",
+        "borrowing",
+        "user",
+        "session_url",
+        "session_id"
+    )
+    list_filter = ("status", "type")
+    search_fields = ("user", "session_id")
 
