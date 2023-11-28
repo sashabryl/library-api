@@ -1,7 +1,7 @@
 import datetime
 
 from django.db.models import Q
-from rest_framework import viewsets, generics
+from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (
     ListModelMixin,
@@ -18,7 +18,9 @@ from book.serializers import (
     BookSerializer,
     BorrowSerializer,
     BorrowListSerializer,
-    BorrowDetailSerializer, PaymentListSerializer, PaymentDetailSerializer,
+    BorrowDetailSerializer,
+    PaymentListSerializer,
+    PaymentDetailSerializer,
 )
 
 
@@ -111,8 +113,7 @@ class PaymentViewSet(
 
     def get_queryset(self):
         queryset = Payment.objects.select_related(
-            "borrowing__user",
-            "borrowing__book"
+            "borrowing__user", "borrowing__book"
         )
 
         if not self.request.user.is_staff:
@@ -121,7 +122,7 @@ class PaymentViewSet(
         return queryset
 
     def get_serializer_class(self):
-        if self.request.action == "list":
+        if self.action == "list":
             return PaymentListSerializer
 
         return PaymentDetailSerializer

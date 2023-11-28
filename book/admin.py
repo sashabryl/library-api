@@ -5,13 +5,7 @@ from book.models import Book, Borrowing, Payment
 
 @admin.register(Book)
 class BookAdmin(admin.ModelAdmin):
-    list_display = (
-        "author",
-        "title",
-        "cover",
-        "inventory",
-        "daily_fee"
-    )
+    list_display = ("author", "title", "cover", "inventory", "daily_fee")
     list_filter = ("cover", "author")
     search_fields = ("title",)
 
@@ -23,7 +17,7 @@ class BorrowingAdmin(admin.ModelAdmin):
         "expected_return_date",
         "user",
         "book",
-        "actual_return_date"
+        "actual_return_date",
     )
     search_fields = ("user",)
 
@@ -34,11 +28,9 @@ class PaymentAdmin(admin.ModelAdmin):
         "status",
         "type",
         "borrowing",
-        "user",
         "session_url",
         "session_id",
-        "money_to_pay"
+        "money_to_pay",
     )
     list_filter = ("status", "type")
     search_fields = ("user", "session_id")
-
