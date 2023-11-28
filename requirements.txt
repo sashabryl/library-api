@@ -5,6 +5,7 @@ billiard==4.2.0
 black==23.11.0
 celery==5.3.6
 certifi==2023.11.17
+charset-normalizer==3.3.2
 click==8.1.7
 click-didyoumean==0.3.0
 click-plugins==1.1.1
@@ -38,9 +39,13 @@ python-dotenv==1.0.0
 python-telegram-bot==20.6
 pytz==2023.3.post1
 redis==5.0.1
+requests==2.31.0
 six==1.16.0
 sniffio==1.3.0
 sqlparse==0.4.4
+stripe==7.6.0
+typing_extensions==4.8.0
 tzdata==2023.3
+urllib3==2.1.0
 vine==5.1.0
 wcwidth==0.2.12
