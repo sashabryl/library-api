@@ -1,6 +1,7 @@
 import datetime
 
 from django.db.models import Q
+from django.urls import reverse_lazy
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -12,6 +13,7 @@ from rest_framework.permissions import IsAdminUser
 from rest_framework.response import Response
 
 from book.models import Book, Borrowing, Payment
+from book.payments import create_payment
 from book.permissions import IsAdminOrReadOnly, IsAdminOrAuthenticatedOwner
 from book.serializers import (
     BookListSerializer,
@@ -82,6 +84,11 @@ class BorrowViewSet(
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    def create(self, request, *args, **kwargs):
+        response = super().create(request, *args, **kwargs)
+        borrowing = Borrowing.objects.get(id=response.data.get("id"))
+        return create_payment(request=request, borrowing=borrowing)
+
     @action(
         methods=["GET"],
         detail=True,
@@ -126,3 +133,18 @@ class PaymentViewSet(
             return PaymentListSerializer
 
         return PaymentDetailSerializer
+
+    @action(methods=["GET"], detail=True, url_path="success")
+    def success(self, request, pk=None):
+        payment = self.get_object()
+        payment.status = "PAID"
+        payment.save()
+        return Response(f"Thank you for your order, {request.user}!", status=201)
+
+    @action(methods=["GET"], detail=True, url_path="cancel")
+    def cancel(self, request, pk=None):
+        return Response(
+            "Please don't forget to pay this payment "
+            "later (session is active for 24 hours)",
+            status=200
+        )
