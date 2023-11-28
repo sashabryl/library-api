@@ -16,7 +16,11 @@ from rest_framework.response import Response
 
 from book.models import Book, Borrowing, Payment
 from book.payments import create_payment
-from book.permissions import IsAdminOrReadOnly, IsAdminOrAuthenticatedOwner
+from book.permissions import (
+    IsAdminOrReadOnly,
+    BorrowingIsAdminOrAuthenticatedOwner,
+    PaymentIsAdminOrAuthenticatedOwner,
+)
 from book.serializers import (
     BookListSerializer,
     BookSerializer,
@@ -48,7 +52,7 @@ class BorrowViewSet(
     CreateModelMixin,
     RetrieveModelMixin,
 ):
-    permission_classes = [IsAdminOrAuthenticatedOwner]
+    permission_classes = [BorrowingIsAdminOrAuthenticatedOwner]
 
     def get_serializer_class(self):
         if self.action == "create":
@@ -133,7 +137,7 @@ class BorrowViewSet(
 class PaymentViewSet(
     viewsets.GenericViewSet, ListModelMixin, RetrieveModelMixin
 ):
-    permission_classes = [IsAdminOrAuthenticatedOwner]
+    permission_classes = [PaymentIsAdminOrAuthenticatedOwner]
 
     def get_queryset(self):
         queryset = Payment.objects.select_related(

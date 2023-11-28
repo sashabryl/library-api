@@ -61,7 +61,7 @@ def create_payment(request, borrowing, type):
         mode="payment",
         success_url=success_url,
         cancel_url=cancel_url,
-        customer_creation="always"
+        customer_creation="always",
     )
 
     payment.session_id = session.id
