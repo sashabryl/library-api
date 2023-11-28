@@ -5,7 +5,7 @@ import stripe
 from celery import shared_task
 from django.conf import settings
 
-from book.models import Borrowing
+from book.models import Borrowing, Payment
 from book.telegram_bot import send_notification
 
 
@@ -60,8 +60,16 @@ def get_expired_sessions():
     sessions = stripe.checkout.Session.list().data
     current_time = int(datetime.datetime.now().timestamp())
     return [
-        session for session in sessions if
+        session.id for session in sessions if
         session.expires_at < current_time and
         session.payment_status == "unpaid"
     ]
 
+
+@shared_task
+def mark_expired_payments():
+    expired_sessions = get_expired_sessions()
+    for payment in Payment.objects.all():
+        if payment.session_id in expired_sessions:
+            payment.status = "EXPIRED"
+            payment.save()
