@@ -36,7 +36,8 @@ class PaymentAdmin(admin.ModelAdmin):
         "borrowing",
         "user",
         "session_url",
-        "session_id"
+        "session_id",
+        "money_to_pay"
     )
     list_filter = ("status", "type")
     search_fields = ("user", "session_id")
