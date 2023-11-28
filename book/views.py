@@ -1,7 +1,8 @@
 import datetime
+import os
 
+import stripe
 from django.db.models import Q
-from django.urls import reverse_lazy
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -24,6 +25,9 @@ from book.serializers import (
     PaymentListSerializer,
     PaymentDetailSerializer,
 )
+
+
+stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 
 class BookViewSet(viewsets.ModelViewSet):
@@ -100,7 +104,8 @@ class BorrowViewSet(
         if borrowing.actual_return_date:
             return Response(
                 f"This book has been already "
-                f"returned on {borrowing.actual_return_date}!"
+                f"returned on {borrowing.actual_return_date}!",
+                status=400
             )
         borrowing.actual_return_date = datetime.date.today()
         borrowing.save()
@@ -137,14 +142,17 @@ class PaymentViewSet(
     @action(methods=["GET"], detail=True, url_path="success")
     def success(self, request, pk=None):
         payment = self.get_object()
+        session = stripe.checkout.Session.retrieve(id=payment.session_id)
+        customer = stripe.Customer.retrieve(id=session.customer)
         payment.status = "PAID"
         payment.save()
-        return Response(f"Thank you for your order, {request.user}!", status=201)
+        return Response(f"Thank you for your order, {customer.name}!", status=201)
 
     @action(methods=["GET"], detail=True, url_path="cancel")
     def cancel(self, request, pk=None):
         return Response(
-            "Please don't forget to pay this payment "
-            "later (session is active for 24 hours)",
+            f"Please don't forget to complete this payment "
+            f"later (the session is active for 24 hours). "
+            f"Link to the session can be found on the payment detail page.",
             status=200
         )

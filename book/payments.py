@@ -1,7 +1,7 @@
 import stripe
 from django.conf import settings
 from django.http import HttpResponseRedirect
-from django.urls import reverse, reverse_lazy
+from django.urls import reverse_lazy
 
 from book.models import Payment
 
