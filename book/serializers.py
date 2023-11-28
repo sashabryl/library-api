@@ -5,6 +5,7 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from book.models import Book, Borrowing, Payment
+from book.payments import create_payment
 from book.telegram_bot import send_notification
 
 
@@ -54,7 +55,7 @@ class BorrowSerializer(serializers.ModelSerializer):
         notification = (
             f"A new borrowing! {validated_data.get('user')}, "
             f"please don't forget to bring "
-            f"'{validated_data.get('book')}' back by "
+            f"'{validated_data.get('book')}' back on "
             f"{validated_data.get('expected_return_date')}!"
         )
         asyncio.run(send_notification(text=notification))
@@ -62,9 +63,16 @@ class BorrowSerializer(serializers.ModelSerializer):
         return super().create(validated_data)
 
 
+class PaymentNestedListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ("id", "status", "type", "money_to_pay")
+
+
 class BorrowDetailSerializer(serializers.ModelSerializer):
     user = serializers.StringRelatedField()
     book = BookListSerializer(many=False, read_only=True)
+    payments = PaymentNestedListSerializer(many=True, read_only=True)
 
     class Meta:
         model = Borrowing
@@ -76,6 +84,7 @@ class BorrowDetailSerializer(serializers.ModelSerializer):
             "expected_return_date",
             "is_active",
             "actual_return_date",
+            "payments"
         )
 
 
@@ -89,6 +98,7 @@ class BorrowListSerializer(serializers.ModelSerializer):
             "id",
             "borrow_date",
             "expected_return_date",
+            "actual_return_date",
             "user",
             "book",
             "is_active",
@@ -104,7 +114,7 @@ class PaymentListSerializer(serializers.ModelSerializer):
 
 
 class PaymentDetailSerializer(serializers.ModelSerializer):
-    borrowing = BorrowDetailSerializer(read_only=True)
+    borrowing = BorrowListSerializer(read_only=True)
 
     class Meta:
         model = Payment

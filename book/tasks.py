@@ -1,11 +1,15 @@
 import datetime
 import asyncio
 
+import stripe
 from celery import shared_task
+from django.conf import settings
 
-from book.models import Borrowing
+from book.models import Borrowing, Payment
 from book.telegram_bot import send_notification
 
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
 
 @shared_task
 def check_for_overdue_borrowings():
@@ -50,3 +54,21 @@ def check_for_overdue_borrowings():
             f"actions on this issue."
         )
         asyncio.run(send_notification(text=notification))
+
+
+def get_expired_sessions():
+    sessions = stripe.checkout.Session.list().data
+    return [
+        session.id for session in sessions if
+        session.status != "open" and session.payment_status == "unpaid"
+    ]
+
+
+@shared_task
+def mark_expired_payments():
+    expired_sessions = get_expired_sessions()
+    print(f"{len(expired_sessions)} expired sessions")
+    for payment in Payment.objects.all():
+        if payment.session_id in expired_sessions:
+            payment.status = "EXPIRED"
+            payment.save()
