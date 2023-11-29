@@ -127,4 +127,34 @@ class UserManageMeTests(APITestCase):
         self.assertEquals(res.status_code, 200)
         self.assertEquals(self.user.first_name, payload.get("first_name"))
 
+    def test_delete_method_forbidden(self):
+        res = self.client.delete(ME_URL)
 
+        self.assertEquals(res.status_code, 405)
+        self.assertTrue(
+            get_user_model().objects.filter(email=self.user.email).exists()
+        )
+
+
+class UnauthenticatedUserManageMeTests(APITestCase):
+    def test_retrieve_forbidden(self):
+        res = self.client.get(ME_URL)
+
+        self.assertEquals(res.status_code, 401)
+
+    def test_update_partial_update_forbidden(self):
+        payload = {
+            "email": "user2@gmail.com",
+            "first_name": "Anna",
+            "last_name": "Surfer"
+        }
+        res = self.client.put(ME_URL, payload)
+        self.assertEquals(res.status_code, 401)
+
+        payload = {"last_name": "Bryl"}
+        res = self.client.patch(ME_URL, payload)
+        self.assertEquals(res.status_code, 401)
+
+    def test_delete_forbidden(self):
+        res = self.client.delete(ME_URL)
+        self.assertEquals(res.status_code, 401)
