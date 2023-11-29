@@ -160,8 +160,8 @@ class BorrowViewSet(
             OpenApiParameter(
                 name="is_active",
                 description=(
-                        "Filter by case-insensitive is_active "
-                        "(bool) (ex. ?is_active=TRUe)"
+                    "Filter by case-insensitive is_active "
+                    "(bool) (ex. ?is_active=TRUe)"
                 ),
                 required=False,
                 type=str,
@@ -222,9 +222,9 @@ class PaymentViewSet(
         Endpoint to which Stripe redirects users after a canceled payment.
         """
         return Response(
-            f"Please don't forget to complete this payment "
-            f"later (the session is active for 24 hours). "
-            f"Link to the session can be found on the payment detail page.",
+            "Please don't forget to complete this payment "
+            "later (the session is active for 24 hours). "
+            "Link to the session can be found on the payment detail page.",
             status=200,
         )
 

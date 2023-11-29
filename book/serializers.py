@@ -5,7 +5,6 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from book.models import Book, Borrowing, Payment
-from book.payments import create_payment
 from book.telegram_bot import send_notification
 
 
