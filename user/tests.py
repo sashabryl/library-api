@@ -6,6 +6,7 @@ from rest_framework.test import APITestCase
 
 
 REGISTER_URL = reverse("user:register")
+ME_URL = reverse("user:me")
 
 
 def sample_user(**params):
@@ -88,4 +89,24 @@ class UserRegisterTests(APITestCase):
         res = self.client.post(REGISTER_URL, payload)
 
         self.assertTrue(res.status_code, 400)
+
+
+class UserManageMeTests(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = sample_user()
+
+    def setUp(self) -> None:
+        self.client.force_authenticate(self.user)
+
+    def test_detail_page_returns_correct_user(self):
+        res = self.client.get(ME_URL)
+
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(res.data.get("id"), self.user.id)
+        self.assertEquals(res.data.get("email"), self.user.email)
+
+
+
 
