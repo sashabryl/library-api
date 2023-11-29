@@ -4,7 +4,7 @@ from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
-
+from book.serializers import BookListSerializer
 from book.views import BookViewSet
 from book.models import Book
 
@@ -18,7 +18,7 @@ def sample_book(**params):
         "author": "Sasha Brul",
         "inventory": 10,
         "cover": "HARD",
-        "daily_fee": Decimal("10.00")
+        "daily_fee": Decimal("10.00"),
     }
     defaults.update(**params)
     return Book.objects.create(**defaults)
@@ -29,7 +29,6 @@ def get_detail_url(pk: int):
 
 
 class UnauthenticatedBookAPITests(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.book = sample_book()
@@ -48,14 +47,12 @@ class UnauthenticatedBookAPITests(APITestCase):
             "author": "Felix Krull",
             "inventory": 5,
             "cover": "SOFT",
-            "daily_fee": Decimal("20.00")
+            "daily_fee": Decimal("20.00"),
         }
         res = self.client.put(get_detail_url(self.book.id), payload)
         self.assertEquals(res.status_code, 401)
 
-        payload = {
-            "title": "Green Fields"
-        }
+        payload = {"title": "Green Fields"}
         res = self.client.patch(get_detail_url(self.book.id), payload)
         self.assertEquals(res.status_code, 401)
 
@@ -67,7 +64,7 @@ class UnauthenticatedBookAPITests(APITestCase):
             "author": "Felix Krull",
             "inventory": 5,
             "cover": "SOFT",
-            "daily_fee": Decimal("20.00")
+            "daily_fee": Decimal("20.00"),
         }
         res = self.client.post(BOOK_URL, payload)
 
@@ -83,7 +80,6 @@ class UnauthenticatedBookAPITests(APITestCase):
 
 
 class AuthenticatedBookAPITests(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.book = sample_book()
@@ -108,14 +104,12 @@ class AuthenticatedBookAPITests(APITestCase):
             "author": "Felix Krull",
             "inventory": 5,
             "cover": "SOFT",
-            "daily_fee": Decimal("20.00")
+            "daily_fee": Decimal("20.00"),
         }
         res = self.client.put(get_detail_url(self.book.id), payload)
         self.assertEquals(res.status_code, 403)
 
-        payload = {
-            "title": "Green Fields"
-        }
+        payload = {"title": "Green Fields"}
         res = self.client.patch(get_detail_url(self.book.id), payload)
         self.assertEquals(res.status_code, 403)
 
@@ -127,7 +121,7 @@ class AuthenticatedBookAPITests(APITestCase):
             "author": "Felix Krull",
             "inventory": 5,
             "cover": "SOFT",
-            "daily_fee": Decimal("20.00")
+            "daily_fee": Decimal("20.00"),
         }
         res = self.client.post(BOOK_URL, payload)
 
@@ -140,3 +134,66 @@ class AuthenticatedBookAPITests(APITestCase):
         res = self.client.delete(get_detail_url(self.book.id))
         self.assertEquals(res.status_code, 403)
         self.assertTrue(Book.objects.filter(title="Blue Seas").exists())
+
+
+class AdminBookAPITests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.book = sample_book()
+        cls.superuser = get_user_model().objects.create_superuser(
+            email="admin@admin.com", password="foiawejf@13142"
+        )
+
+    def setUp(self) -> None:
+        self.client.force_authenticate(self.superuser)
+
+    def test_create_works(self):
+        payload = {
+            "title": "Black Rivers",
+            "author": "Felix Krull",
+            "inventory": 5,
+            "cover": "SOFT",
+            "daily_fee": Decimal("20.00"),
+        }
+        res = self.client.post(BOOK_URL, payload)
+
+        self.assertEquals(res.status_code, 201)
+        self.assertTrue(
+            Book.objects.filter(title=payload.get("title")).exists()
+        )
+
+    def test_update_partial_update_works(self):
+        payload = {
+            "title": "Black Rivers",
+            "author": "Felix Krull",
+            "inventory": 5,
+            "cover": "SOFT",
+            "daily_fee": Decimal("20.00"),
+        }
+        res = self.client.put(get_detail_url(self.book.id), payload)
+        self.book.refresh_from_db()
+
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(self.book.title, payload.get("title"))
+        self.assertEquals(self.book.author, payload.get("author"))
+        self.assertEquals(self.book.inventory, payload.get("inventory"))
+        self.assertEquals(self.book.cover, payload.get("cover"))
+        self.assertEquals(self.book.daily_fee, payload.get("daily_fee"))
+
+        payload = {"title": "Crimson Rivers"}
+        res = self.client.patch(get_detail_url(self.book.id), payload)
+        self.book.refresh_from_db()
+
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(self.book.title, payload.get("title"))
+
+    def test_list_works(self):
+        res = self.client.get(BOOK_URL)
+        serializer = BookListSerializer(list(Book.objects.all()), many=True)
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(res.data, serializer.data)
+
+    def test_delete_works(self):
+        res = self.client.delete(get_detail_url(self.book.id))
+        self.assertEquals(res.status_code, 204)
+        self.assertFalse(Book.objects.filter(title="Blue Seas").exists())
