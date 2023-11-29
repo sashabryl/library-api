@@ -154,7 +154,7 @@ class PaymentViewSet(
             "borrowing__user", "borrowing__book"
         )
 
-        if not self.request.user.is_staff:
+        if self.action == "list" and not self.request.user.is_staff:
             queryset = queryset.filter(borrowing__user=self.request.user)
 
         return queryset
@@ -169,10 +169,13 @@ class PaymentViewSet(
     def success(self, request, pk=None):
         payment = self.get_object()
         session = stripe.checkout.Session.retrieve(payment.session_id)
-        customer = stripe.Customer.retrieve(session.customer)
-        payment.status = "PAID"
-        payment.save()
-        return Response(f"Thank you, {customer.name}!", status=200)
+        if session.payment_status == "paid":
+            customer = stripe.Customer.retrieve(session.customer)
+            payment.status = "PAID"
+            payment.save()
+            return Response(f"Thank you, {customer.name}!", status=200)
+
+        return Response(f"Not yet, pay first: {session.url}", status=403)
 
     @action(methods=["GET"], detail=True, url_path="cancel")
     def cancel(self, request, pk=None):
