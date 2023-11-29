@@ -9,6 +9,7 @@ from django.urls import reverse
 from book.models import Book, Borrowing, Payment
 from book.serializers import BorrowListSerializer, BorrowDetailSerializer
 
+
 BORROW_URL = reverse("book:borrow-list")
 
 
@@ -170,13 +171,19 @@ class AuthenticatedBorrowingApiTests(APITestCase):
             days=2
         )
         book = sample_book()
+        book_inventory_before_borrowing = book.inventory
         payload = {
             "expected_return_date": expected_return_date,
             "book": book.id,
         }
         res = self.client.post(BORROW_URL, payload)
+        book.refresh_from_db()
 
         self.assertEqual(res.status_code, 302)
+        self.assertEqual(
+            book_inventory_before_borrowing,
+            book.inventory + 1
+        )
         self.assertTrue(
             Borrowing.objects.filter(
                 user=self.user,
@@ -217,3 +224,110 @@ class AuthenticatedBorrowingApiTests(APITestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, 403)
         self.assertEqual(self.borrowing.actual_return_date, None)
+
+
+class AdminBorrowApiTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.superuser = get_user_model().objects.create_superuser(
+            email="admin@admin.com", password="fejawi!3h2i1u"
+        )
+
+    def setUp(self) -> None:
+        self.client.force_authenticate(self.superuser)
+
+    def test_list_filtering_works(self):
+        bob = sample_user()
+        borrow_bob_one = sample_borrowing(user=bob)
+        borrow_bob_two = sample_borrowing(
+            user=bob, actual_return_date=datetime.date.today()
+        )
+
+        alice = sample_user()
+        borrow_alice_one = sample_borrowing(user=alice)
+        borrow_alice_two = sample_borrowing(
+            user=alice, actual_return_date=datetime.date.today()
+        )
+
+        active_borrows_serializer = BorrowListSerializer(
+            [borrow_bob_one, borrow_alice_one], many=True
+        )
+        alice_borrows_serializer = BorrowListSerializer(
+            [borrow_alice_one, borrow_alice_two], many=True
+        )
+
+        res = self.client.get(BORROW_URL, data={"is_active": "True"})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data, active_borrows_serializer.data)
+
+        res = self.client.get(BORROW_URL, data={"user_id": alice.id})
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data, alice_borrows_serializer.data)
+
+    def test_retrieve_other_borrowings_allowed(self):
+        borrow = sample_borrowing()
+        res = self.client.get(get_detail_url(borrow.id))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data.get("user"), str(borrow.user))
+
+    def test_delete_forbidden(self):
+        borrow_id = sample_borrowing().id
+        res = self.client.delete(get_detail_url(borrow_id))
+        self.assertEqual(res.status_code, 405)
+        self.assertTrue(Borrowing.objects.filter(id=borrow_id).exists())
+
+    def test_update_partial_update_forbidden(self):
+        borrowing = sample_borrowing()
+        sample_book()
+        sample_user()
+        payload = {
+            "borrow_date": datetime.date.today(),
+            "expected_return_date": (
+                    datetime.date.today() + datetime.timedelta(days=2)
+            ),
+            "actual_return_date": (
+                    datetime.date.today() + datetime.timedelta(days=1)
+            ),
+            "book": 2,
+            "user": 2,
+        }
+        res = self.client.put(get_detail_url(borrowing.id), payload)
+        self.assertEqual(res.status_code, 405)
+
+        payload = {"actual_return_date": datetime.date.today()}
+        res = self.client.patch(get_detail_url(borrowing.id), payload)
+        self.assertEqual(res.status_code, 405)
+
+        self.assertEqual(borrowing.actual_return_date, None)
+
+    def test_return_book_action_works(self):
+        borrowing = sample_borrowing()
+        book_inventory_after_borrowing = borrowing.book.inventory
+        res = self.client.get(get_detail_url(borrowing.id) + "return/")
+        borrowing.refresh_from_db()
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(borrowing.actual_return_date, datetime.date.today())
+        self.assertEqual(
+            borrowing.book.inventory,
+            book_inventory_after_borrowing + 1
+        )
+
+        res = self.client.get(get_detail_url(borrowing.id) + "return/")
+        self.assertEqual(res.status_code, 400)
+
+    def test_return_book_creates_fine_when_borrow_overdue(self):
+        borrowing = sample_borrowing(
+            borrow_date=(
+                datetime.date.today() - datetime.timedelta(days=4)
+            ),
+            expected_return_date=(
+                datetime.date.today() - datetime.timedelta(days=2)
+            ),
+
+        )
+        res = self.client.get(get_detail_url(borrowing.id) + "return/")
+        self.assertEqual(res.status_code, 200)
+        self.assertTrue(
+            Payment.objects.filter(borrowing=borrowing, type="FINE").exists()
+        )

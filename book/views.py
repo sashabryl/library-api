@@ -78,7 +78,7 @@ class BorrowViewSet(
             queryset = queryset.filter(user__id=user_id)
 
         if is_active is not None:
-            if is_active == "True":
+            if is_active.lower() == "true":
                 queryset = queryset.filter(actual_return_date__isnull=True)
             else:
                 queryset = queryset.filter(
