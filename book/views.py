@@ -202,6 +202,10 @@ class PaymentViewSet(
 
     @action(methods=["GET"], detail=True, url_path="success")
     def success(self, request, pk=None):
+        """
+        Endpoint to which Stripe redirects users after a successful payment.
+        Here Payment status becomes "PAID"
+        """
         payment = self.get_object()
         session = stripe.checkout.Session.retrieve(payment.session_id)
         if session.payment_status == "paid":
@@ -214,6 +218,9 @@ class PaymentViewSet(
 
     @action(methods=["GET"], detail=True, url_path="cancel")
     def cancel(self, request, pk=None):
+        """
+        Endpoint to which Stripe redirects users after a canceled payment.
+        """
         return Response(
             f"Please don't forget to complete this payment "
             f"later (the session is active for 24 hours). "
@@ -223,6 +230,10 @@ class PaymentViewSet(
 
     @action(methods=["GET"], detail=True, url_path="renew-session")
     def renew_session(self, request, pk=None):
+        """
+        Here users can "renew" their expired payments
+        (a new stripe checkout session is created with the same data).
+        """
         payment = self.get_object()
         if payment.status != "EXPIRED":
             return Response(
