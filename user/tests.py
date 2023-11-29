@@ -78,5 +78,14 @@ class UserRegisterTests(APITestCase):
             ).exists()
         )
 
+    def test_unique_constraint_on_email(self):
+        sample_user(email="simple@gmail.com")
+        payload = {
+            "email": "simple@gmail.com",
+            "password": "asdf!qwe321",
+            "confirm_password": "asdf!qwe321"
+        }
+        res = self.client.post(REGISTER_URL, payload)
 
+        self.assertTrue(res.status_code, 400)
 
