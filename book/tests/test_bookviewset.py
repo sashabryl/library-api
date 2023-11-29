@@ -1,5 +1,6 @@
 from decimal import Decimal
 
+from django.contrib.auth import get_user_model
 from django.urls import reverse
 from rest_framework.test import APITestCase
 
@@ -80,3 +81,62 @@ class UnauthenticatedBookAPITests(APITestCase):
         self.assertEquals(res.status_code, 401)
         self.assertTrue(Book.objects.filter(title="Blue Seas").exists())
 
+
+class AuthenticatedBookAPITests(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.book = sample_book()
+        cls.user = get_user_model().objects.create_user(
+            email="testuser@gmail.com", password="fjewia321!uf"
+        )
+
+    def setUp(self) -> None:
+        self.client.force_authenticate(self.user)
+
+    def test_list_allowed(self):
+        res = self.client.get(BOOK_URL)
+        self.assertEquals(res.status_code, 200)
+
+    def test_retrieve_forbidden(self):
+        res = self.client.get(get_detail_url(self.book.id))
+        self.assertEquals(res.status_code, 403)
+
+    def test_update_partial_update_forbidden(self):
+        payload = {
+            "title": "Black Rivers",
+            "author": "Felix Krull",
+            "inventory": 5,
+            "cover": "SOFT",
+            "daily_fee": Decimal("20.00")
+        }
+        res = self.client.put(get_detail_url(self.book.id), payload)
+        self.assertEquals(res.status_code, 403)
+
+        payload = {
+            "title": "Green Fields"
+        }
+        res = self.client.patch(get_detail_url(self.book.id), payload)
+        self.assertEquals(res.status_code, 403)
+
+        self.assertEquals(self.book.title, "Blue Seas")
+
+    def test_create_forbidden(self):
+        payload = {
+            "title": "Black Rivers",
+            "author": "Felix Krull",
+            "inventory": 5,
+            "cover": "SOFT",
+            "daily_fee": Decimal("20.00")
+        }
+        res = self.client.post(BOOK_URL, payload)
+
+        self.assertEquals(res.status_code, 403)
+        self.assertFalse(
+            Book.objects.filter(title=payload.get("title")).exists()
+        )
+
+    def test_delete_forbidden(self):
+        res = self.client.delete(get_detail_url(self.book.id))
+        self.assertEquals(res.status_code, 403)
+        self.assertTrue(Book.objects.filter(title="Blue Seas").exists())
