@@ -7,7 +7,7 @@ from rest_framework.test import APITestCase
 from django.urls import reverse
 
 from book.models import Book, Borrowing, Payment
-from book.serializers import BorrowListSerializer, BorrowDetailSerializer
+from book.serializers import BorrowListSerializer
 
 
 BORROW_URL = reverse("book:borrow-list")
@@ -235,10 +235,8 @@ class AdminBorrowApiTests(APITestCase):
 
     def test_list_filtering_works(self):
         bob = sample_user()
-        borrow_bob_one = sample_borrowing(user=bob)
-        borrow_bob_two = sample_borrowing(
-            user=bob, actual_return_date=datetime.date.today()
-        )
+        borrow_bob = sample_borrowing(user=bob)
+        sample_borrowing(user=bob, actual_return_date=datetime.date.today())
 
         alice = sample_user()
         borrow_alice_one = sample_borrowing(user=alice)
@@ -247,7 +245,7 @@ class AdminBorrowApiTests(APITestCase):
         )
 
         active_borrows_serializer = BorrowListSerializer(
-            [borrow_bob_one, borrow_alice_one], many=True
+            [borrow_bob, borrow_alice_one], many=True
         )
         alice_borrows_serializer = BorrowListSerializer(
             [borrow_alice_one, borrow_alice_two], many=True

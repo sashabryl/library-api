@@ -4,6 +4,7 @@ import os
 import stripe
 from django.db.models import Q
 from django.http import HttpResponseRedirect
+from drf_spectacular.utils import extend_schema, OpenApiParameter
 from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.mixins import (
@@ -94,6 +95,11 @@ class BorrowViewSet(
         serializer.save(user=self.request.user)
 
     def create(self, request, *args, **kwargs):
+        """
+        If the user does not have unpaid payment,
+        redirects to a stripe payment session.
+        Otherwise, return 403.
+        """
         if Payment.objects.filter(
             borrowing__in=request.user.borrowings.all(), status="PENDING"
         ).exists():
@@ -118,6 +124,12 @@ class BorrowViewSet(
         permission_classes=[IsAdminUser],
     )
     def return_book(self, request, pk=None):
+        """
+        Sets the current date as actual_return_date of the borrowing.
+        If it is not null already, returns status code 400.
+        If the actual_return_date turns out to be later than expected,
+        a fine payment is created.
+        """
         borrowing = self.get_object()
         if borrowing.actual_return_date:
             return Response(
@@ -143,6 +155,29 @@ class BorrowViewSet(
             f"{create_payment(request, borrowing, 'FINE')}"
         )
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="is_active",
+                description=(
+                    "Filter by case-insensitive is_active "
+                    "(bool) (ex. ?is_active=TRUe)"
+                ),
+                required=False,
+                type=str,
+            ),
+            OpenApiParameter(
+                name="user_id",
+                description="Filter by id of a user (ex. ?user_id=2)",
+                required=False,
+                type=int,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        """Filtering is for superusers only."""
+        return super().list(request, *args, **kwargs)
+
 
 class PaymentViewSet(
     viewsets.GenericViewSet, ListModelMixin, RetrieveModelMixin
@@ -167,6 +202,10 @@ class PaymentViewSet(
 
     @action(methods=["GET"], detail=True, url_path="success")
     def success(self, request, pk=None):
+        """
+        Endpoint to which Stripe redirects users after a successful payment.
+        Here Payment status becomes "PAID"
+        """
         payment = self.get_object()
         session = stripe.checkout.Session.retrieve(payment.session_id)
         if session.payment_status == "paid":
@@ -179,15 +218,22 @@ class PaymentViewSet(
 
     @action(methods=["GET"], detail=True, url_path="cancel")
     def cancel(self, request, pk=None):
+        """
+        Endpoint to which Stripe redirects users after a canceled payment.
+        """
         return Response(
-            f"Please don't forget to complete this payment "
-            f"later (the session is active for 24 hours). "
-            f"Link to the session can be found on the payment detail page.",
+            "Please don't forget to complete this payment "
+            "later (the session is active for 24 hours). "
+            "Link to the session can be found on the payment detail page.",
             status=200,
         )
 
     @action(methods=["GET"], detail=True, url_path="renew-session")
     def renew_session(self, request, pk=None):
+        """
+        Here users can "renew" their expired payments
+        (a new stripe checkout session is created with the same data).
+        """
         payment = self.get_object()
         if payment.status != "EXPIRED":
             return Response(

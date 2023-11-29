@@ -5,7 +5,6 @@ from django.urls import reverse
 from rest_framework.test import APITestCase
 
 from book.serializers import BookListSerializer
-from book.views import BookViewSet
 from book.models import Book
 
 

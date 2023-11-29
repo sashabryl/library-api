@@ -1,5 +1,3 @@
-import datetime
-
 from django.conf import settings
 from django.db import models
 
@@ -23,7 +21,10 @@ class Book(models.Model):
         return self.inventory != 0
 
     def __str__(self) -> str:
-        return f"{self.title.title()} by {self.author.title()}, cover: {self.cover}"
+        return (
+            f"{self.title.title()} by {self.author.title()}, "
+            f"cover: {self.cover}"
+        )
 
 
 class Borrowing(models.Model):

@@ -65,7 +65,5 @@ class BorrowingTests(TestCase):
         borrow = sample_borrowing()
         self.assertTrue(borrow.is_active)
 
-        borrow = sample_borrowing(
-            actual_return_date=datetime.date.today()
-        )
+        borrow = sample_borrowing(actual_return_date=datetime.date.today())
         self.assertFalse(borrow.is_active)
