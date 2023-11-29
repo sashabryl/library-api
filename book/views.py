@@ -139,7 +139,8 @@ class BorrowViewSet(
 
         return Response(
             f"Well, well, silly {borrowing.user}, "
-            f"here is their fine: {create_payment(borrowing=borrowing, request=request, type='FINE')}"
+            f"here is their fine: "
+            f"{create_payment(request, borrowing, 'FINE')}"
         )
 
 
