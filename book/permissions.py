@@ -1,9 +1,9 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
-class IsAdminOrReadOnly(BasePermission):
+class IsAdminOrListOnly(BasePermission):
     def has_permission(self, request, view):
-        return bool(request.user.is_staff or request.method in SAFE_METHODS)
+        return bool(request.user.is_staff or view.action == "list")
 
 
 class BorrowingIsAdminOrAuthenticatedOwner(BasePermission):

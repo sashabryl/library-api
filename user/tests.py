@@ -12,26 +12,27 @@ ME_URL = reverse("user:me")
 def sample_user(**params):
     defaults = {
         "email": f"user{uuid.uuid4()}@gmail.com",
-        "password": f"{uuid.uuid4()}feawfr"
+        "password": f"{uuid.uuid4()}feawfr",
     }
     defaults.update(**params)
     return get_user_model().objects.create_user(**defaults)
 
 
 class UserRegisterTests(APITestCase):
-
     def test_register_works(self):
         payload = {
             "email": "testuser@gmail.com",
             "password": "asdfasdf!qwe321",
-            "confirm_password": "asdfasdf!qwe321"
+            "confirm_password": "asdfasdf!qwe321",
         }
         res = self.client.post(REGISTER_URL, payload)
 
         self.assertTrue(res.status_code, 201)
-        self.assertTrue(get_user_model().objects.filter(
-            email="testuser@gmail.com"
-        ).exists())
+        self.assertTrue(
+            get_user_model()
+            .objects.filter(email="testuser@gmail.com")
+            .exists()
+        )
         user = get_user_model().objects.get(email="testuser@gmail.com")
         self.assertTrue(user.check_password("asdfasdf!qwe321"))
 
@@ -39,15 +40,15 @@ class UserRegisterTests(APITestCase):
         payload = {
             "email": "testuser2@gmail.com",
             "password": "asdf!qwe321",
-            "confirm_password": "asdf!qwe123"
+            "confirm_password": "asdf!qwe123",
         }
         res = self.client.post(REGISTER_URL, payload)
 
         self.assertTrue(res.status_code, 400)
         self.assertFalse(
-            get_user_model().objects.filter(
-                email="testuser2@gmail.com"
-            ).exists()
+            get_user_model()
+            .objects.filter(email="testuser2@gmail.com")
+            .exists()
         )
 
     def test_django_password_validation_works(self):
@@ -60,9 +61,9 @@ class UserRegisterTests(APITestCase):
 
         self.assertTrue(res.status_code, 400)
         self.assertFalse(
-            get_user_model().objects.filter(
-                email="testuser3@gmail.com"
-            ).exists()
+            get_user_model()
+            .objects.filter(email="testuser3@gmail.com")
+            .exists()
         )
 
         payload = {
@@ -74,9 +75,9 @@ class UserRegisterTests(APITestCase):
 
         self.assertTrue(res.status_code, 400)
         self.assertFalse(
-            get_user_model().objects.filter(
-                email="testuser4@gmail.com"
-            ).exists()
+            get_user_model()
+            .objects.filter(email="testuser4@gmail.com")
+            .exists()
         )
 
     def test_unique_constraint_on_email(self):
@@ -84,7 +85,7 @@ class UserRegisterTests(APITestCase):
         payload = {
             "email": "simple@gmail.com",
             "password": "asdf!qwe321",
-            "confirm_password": "asdf!qwe321"
+            "confirm_password": "asdf!qwe321",
         }
         res = self.client.post(REGISTER_URL, payload)
 
@@ -92,7 +93,6 @@ class UserRegisterTests(APITestCase):
 
 
 class UserManageMeTests(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.user = sample_user()
@@ -111,7 +111,7 @@ class UserManageMeTests(APITestCase):
         payload = {
             "email": "newuser@gmail.com",
             "first_name": "Sasha",
-            "last_name": "Bryl"
+            "last_name": "Bryl",
         }
         res = self.client.put(ME_URL, payload)
 
@@ -146,7 +146,7 @@ class UnauthenticatedUserManageMeTests(APITestCase):
         payload = {
             "email": "user2@gmail.com",
             "first_name": "Anna",
-            "last_name": "Surfer"
+            "last_name": "Surfer",
         }
         res = self.client.put(ME_URL, payload)
         self.assertEquals(res.status_code, 401)
