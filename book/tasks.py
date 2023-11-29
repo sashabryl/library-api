@@ -32,9 +32,6 @@ def check_for_overdue_borrowings():
         )
 
     for tomorrow_borrow in tomorrow_overdues:
-        print(
-            f"{tomorrow_borrow.user} should return {tomorrow_borrow.book} tomorrow"
-        )
         notification = (
             f"{tomorrow_borrow.user} !\n We are expecting you to return "
             f"'{tomorrow_borrow.book}' tomorrow, "
@@ -44,10 +41,6 @@ def check_for_overdue_borrowings():
         asyncio.run(send_notification(text=notification))
 
     for over_borrow in overdue_borrowings:
-        print(
-            f"{over_borrow.user} should return {over_borrow.book}"
-            f" on {over_borrow.expected_return_date}"
-        )
         notification = (
             f"{over_borrow.user} !\n You are supposed to return "
             f"'{over_borrow.book}' on {over_borrow.expected_return_date}, "
@@ -62,14 +55,13 @@ def get_expired_sessions():
     return [
         session.id
         for session in sessions
-        if session.status != "open" and session.payment_status == "unpaid"
+        if session.status == "expired" and session.payment_status == "unpaid"
     ]
 
 
 @shared_task
 def mark_expired_payments():
     expired_sessions = get_expired_sessions()
-    print(f"{len(expired_sessions)} expired sessions")
     for payment in Payment.objects.all():
         if payment.session_id in expired_sessions:
             payment.status = "EXPIRED"
