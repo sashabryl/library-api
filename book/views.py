@@ -154,7 +154,7 @@ class PaymentViewSet(
             "borrowing__user", "borrowing__book"
         )
 
-        if not self.request.user.is_staff:
+        if self.action == "list" and not self.request.user.is_staff:
             queryset = queryset.filter(borrowing__user=self.request.user)
 
         return queryset

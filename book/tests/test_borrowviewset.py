@@ -180,10 +180,7 @@ class AuthenticatedBorrowingApiTests(APITestCase):
         book.refresh_from_db()
 
         self.assertEqual(res.status_code, 302)
-        self.assertEqual(
-            book_inventory_before_borrowing,
-            book.inventory + 1
-        )
+        self.assertEqual(book_inventory_before_borrowing, book.inventory + 1)
         self.assertTrue(
             Borrowing.objects.filter(
                 user=self.user,
@@ -283,10 +280,10 @@ class AdminBorrowApiTests(APITestCase):
         payload = {
             "borrow_date": datetime.date.today(),
             "expected_return_date": (
-                    datetime.date.today() + datetime.timedelta(days=2)
+                datetime.date.today() + datetime.timedelta(days=2)
             ),
             "actual_return_date": (
-                    datetime.date.today() + datetime.timedelta(days=1)
+                datetime.date.today() + datetime.timedelta(days=1)
             ),
             "book": 2,
             "user": 2,
@@ -309,8 +306,7 @@ class AdminBorrowApiTests(APITestCase):
         self.assertEqual(res.status_code, 200)
         self.assertEqual(borrowing.actual_return_date, datetime.date.today())
         self.assertEqual(
-            borrowing.book.inventory,
-            book_inventory_after_borrowing + 1
+            borrowing.book.inventory, book_inventory_after_borrowing + 1
         )
 
         res = self.client.get(get_detail_url(borrowing.id) + "return/")
@@ -318,13 +314,10 @@ class AdminBorrowApiTests(APITestCase):
 
     def test_return_book_creates_fine_when_borrow_overdue(self):
         borrowing = sample_borrowing(
-            borrow_date=(
-                datetime.date.today() - datetime.timedelta(days=4)
-            ),
+            borrow_date=(datetime.date.today() - datetime.timedelta(days=4)),
             expected_return_date=(
                 datetime.date.today() - datetime.timedelta(days=2)
             ),
-
         )
         res = self.client.get(get_detail_url(borrowing.id) + "return/")
         self.assertEqual(res.status_code, 200)

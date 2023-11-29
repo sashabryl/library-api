@@ -50,7 +50,7 @@ def sample_payment(**params):
         "type": "FINE",
         "status": "PENDING",
         "money_to_pay": Decimal("20.00"),
-        "borrowing": sample_borrowing()
+        "borrowing": sample_borrowing(),
     }
     defaults.update(**params)
     return Payment.objects.create(**defaults)
@@ -71,7 +71,7 @@ class UnauthenticatedPaymentApiTests(APITestCase):
             "type": "FINE",
             "status": "PENDING",
             "money_to_pay": Decimal("20.00"),
-            "borrowing": 1
+            "borrowing": 1,
         }
         res = self.client.post(PAYMENT_URL, payload)
         self.assertEqual(res.status_code, 401)
@@ -89,7 +89,7 @@ class UnauthenticatedPaymentApiTests(APITestCase):
             "type": "FINE",
             "status": "EXPIRED",
             "money_to_pay": Decimal("21.00"),
-            "borrowing": 2
+            "borrowing": 2,
         }
 
         res = self.client.put(get_detail_url(payment.id), payload)
@@ -105,6 +105,79 @@ class UnauthenticatedPaymentApiTests(APITestCase):
         self.assertEqual(res.status_code, 401)
 
 
+class AuthenticatedPaymentApiTests(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = get_user_model().objects.create_user(
+            email="feniawj@hmail.com", password="fjewia3112!"
+        )
 
+    def setUp(self) -> None:
+        self.client.force_authenticate(self.user)
 
+    def test_list_returns_only_your_payments(self):
+        my_borrow = sample_borrowing(user=self.user)
+        my_payment_one = sample_payment(borrowing=my_borrow)
+        my_payment_two = sample_payment(borrowing=my_borrow)
+        alien_borrow = sample_borrowing()
+        alien_payment = sample_payment(borrowing=alien_borrow)
 
+        my_payments = PaymentListSerializer(
+            [my_payment_one, my_payment_two], many=True
+        ).data
+        alien_payments = PaymentListSerializer(
+            [alien_payment], many=True
+        ).data
+
+        res = self.client.get(PAYMENT_URL)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data, my_payments)
+        self.assertNotIn(alien_payments, res.data)
+
+    def test_retrieving_only_your_payments_works(self):
+        my_borrow = sample_borrowing(user=self.user)
+        my_payment = sample_payment(borrowing=my_borrow)
+
+        res = self.client.get(get_detail_url(my_payment.id))
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.data.get("id"), my_payment.id)
+
+    def test_you_cannot_retrieve_payments_of_others(self):
+        alien_payment = sample_payment()
+        alien_payment.refresh_from_db()
+        res = self.client.get(get_detail_url(alien_payment.id))
+        self.assertEqual(res.status_code, 403)
+
+    def test_create_forbidden(self):
+        sample_borrowing()
+        payload = {
+            "type": "FINE",
+            "status": "PENDING",
+            "money_to_pay": Decimal("20.00"),
+            "borrowing": 1,
+        }
+        res = self.client.post(PAYMENT_URL, payload)
+        self.assertEqual(res.status_code, 405)
+
+    def test_update_partial_update_forbidden(self):
+        payment = sample_payment()
+        sample_borrowing()
+        sample_borrowing()
+        payload = {
+            "type": "FINE",
+            "status": "EXPIRED",
+            "money_to_pay": Decimal("21.00"),
+            "borrowing": 2,
+        }
+
+        res = self.client.put(get_detail_url(payment.id), payload)
+        self.assertEqual(res.status_code, 405)
+
+        payload = {"status": "PAID"}
+        res = self.client.patch(get_detail_url(payment.id), payload)
+        self.assertEqual(res.status_code, 405)
+
+    def test_delete_forbidden(self):
+        payment = sample_payment()
+        res = self.client.delete(get_detail_url(payment.id))
+        self.assertEqual(res.status_code, 405)

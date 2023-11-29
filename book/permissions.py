@@ -18,7 +18,6 @@ class BorrowingIsAdminOrAuthenticatedOwner(BasePermission):
 
 
 class PaymentIsAdminOrAuthenticatedOwner(BasePermission):
-
     def has_permission(self, request, view):
         return bool(request.user.is_authenticated)
 
