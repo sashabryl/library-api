@@ -17,7 +17,7 @@ from rest_framework.response import Response
 from book.models import Book, Borrowing, Payment
 from book.payments import create_payment, recover_payment
 from book.permissions import (
-    IsAdminOrReadOnly,
+    IsAdminOrListOnly,
     BorrowingIsAdminOrAuthenticatedOwner,
     PaymentIsAdminOrAuthenticatedOwner,
 )
@@ -37,7 +37,7 @@ stripe.api_key = os.getenv("STRIPE_SECRET_KEY")
 
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrListOnly]
 
     def get_serializer_class(self):
         if self.action == "list":
