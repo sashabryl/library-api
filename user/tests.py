@@ -38,7 +38,7 @@ class UserRegisterTests(APITestCase):
         payload = {
             "email": "testuser2@gmail.com",
             "password": "asdf!qwe321",
-            "password_confirm": "asdf!qwe123"
+            "confirm_password": "asdf!qwe123"
         }
         res = self.client.post(REGISTER_URL, payload)
 
@@ -46,6 +46,35 @@ class UserRegisterTests(APITestCase):
         self.assertFalse(
             get_user_model().objects.filter(
                 email="testuser2@gmail.com"
+            ).exists()
+        )
+
+    def test_django_password_validation_works(self):
+        payload = {
+            "email": "testuser3@gmail.com",
+            "password": "abc",
+            "confirm_password": "abc",
+        }
+        res = self.client.post(REGISTER_URL, payload)
+
+        self.assertTrue(res.status_code, 400)
+        self.assertFalse(
+            get_user_model().objects.filter(
+                email="testuser3@gmail.com"
+            ).exists()
+        )
+
+        payload = {
+            "email": "testuser4@gmail.com",
+            "password": "123456789",
+            "confirm_password": "123456789",
+        }
+        res = self.client.post(REGISTER_URL, payload)
+
+        self.assertTrue(res.status_code, 400)
+        self.assertFalse(
+            get_user_model().objects.filter(
+                email="testuser4@gmail.com"
             ).exists()
         )
 
