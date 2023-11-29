@@ -2,7 +2,6 @@ import datetime
 import uuid
 from decimal import Decimal
 
-from freezegun import freeze_time
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from rest_framework.test import APITestCase
@@ -10,7 +9,7 @@ from django.urls import reverse
 import stripe
 
 from book.models import Book, Borrowing, Payment
-from book.serializers import PaymentListSerializer, PaymentDetailSerializer
+from book.serializers import PaymentListSerializer
 
 
 PAYMENT_URL = reverse("book:payment-list")
