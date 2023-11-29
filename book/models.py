@@ -40,7 +40,7 @@ class Borrowing(models.Model):
     )
 
     class Meta:
-        ordering = ["-expected_return_date"]
+        ordering = ["-borrow_date"]
 
     @property
     def is_active(self) -> bool:

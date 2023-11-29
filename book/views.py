@@ -78,7 +78,7 @@ class BorrowViewSet(
             queryset = queryset.filter(user__id=user_id)
 
         if is_active is not None:
-            if is_active == "True":
+            if is_active.lower() == "true":
                 queryset = queryset.filter(actual_return_date__isnull=True)
             else:
                 queryset = queryset.filter(
@@ -139,7 +139,8 @@ class BorrowViewSet(
 
         return Response(
             f"Well, well, silly {borrowing.user}, "
-            f"here is their fine: {create_payment(borrowing=borrowing, request=request, type='FINE')}"
+            f"here is their fine: "
+            f"{create_payment(request, borrowing, 'FINE')}"
         )
 
 
