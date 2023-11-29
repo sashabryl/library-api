@@ -15,6 +15,7 @@ Restful Django project for managing a library.
 ```bash
 git clone https://github.com/sashabryl/library-api.git
 cd library-api
+cp .env.sample .env
 docker-compose build
 docker-compose up
 ```
