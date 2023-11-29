@@ -34,7 +34,20 @@ class UserRegisterTests(APITestCase):
         user = get_user_model().objects.get(email="testuser@gmail.com")
         self.assertTrue(user.check_password("asdfasdf!qwe321"))
 
+    def test_password_confirm_validation_works(self):
+        payload = {
+            "email": "testuser2@gmail.com",
+            "password": "asdf!qwe321",
+            "password_confirm": "asdf!qwe123"
+        }
+        res = self.client.post(REGISTER_URL, payload)
 
+        self.assertTrue(res.status_code, 400)
+        self.assertFalse(
+            get_user_model().objects.filter(
+                email="testuser2@gmail.com"
+            ).exists()
+        )
 
 
 
