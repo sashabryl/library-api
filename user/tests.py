@@ -107,6 +107,24 @@ class UserManageMeTests(APITestCase):
         self.assertEquals(res.data.get("id"), self.user.id)
         self.assertEquals(res.data.get("email"), self.user.email)
 
+    def test_update_method_works(self):
+        payload = {
+            "email": "newuser@gmail.com",
+            "first_name": "Sasha",
+            "last_name": "Bryl"
+        }
+        res = self.client.put(ME_URL, payload)
 
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(self.user.email, payload.get("email"))
+        self.assertEquals(self.user.first_name, payload.get("first_name"))
+        self.assertEquals(self.user.last_name, payload.get("last_name"))
+
+    def test_partial_update_works(self):
+        payload = {"first_name": "Isaac"}
+        res = self.client.patch(ME_URL, payload)
+
+        self.assertEquals(res.status_code, 200)
+        self.assertEquals(self.user.first_name, payload.get("first_name"))
 
 
